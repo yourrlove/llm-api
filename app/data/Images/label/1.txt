@@ -1,0 +1,12 @@
+{
+	"categories": [
+	{
+		"name": "animal",
+		"score": 0.91234
+	}
+	],
+	"description": {
+	"tags": [ "panda", "outdoor", "animal", "baby panda"],
+	"caption": "a baby panda is eating"
+	}
+}

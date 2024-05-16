@@ -38,7 +38,6 @@ This is the repository for Demo Rest Api Custom LLM
 
 <h3>Flask App Structure</h3>
 Inside that directory, it will generate the initial project structure :
-
 ```
 API_llm/
 ├──enviroment.env
@@ -87,7 +86,6 @@ API_llm/
 │   │   │       └── {name}.pdf
 ├── requirements.txt  
 └── run.py
-
 ```
 # Demo in Command Prompt
 

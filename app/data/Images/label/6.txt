@@ -1,0 +1,12 @@
+{
+	"categories": [
+	{
+		"name": "beach",
+		"score": 0.9542
+	}
+	],
+	"description": {
+	"tags": [ "beach", "outdoor", "sky", "people", "crowd", "group"],
+	"caption": "Many people are active on the beach"
+	}
+}

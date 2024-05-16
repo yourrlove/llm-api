@@ -1,0 +1,12 @@
+{
+	"categories": [
+	{
+		"name": "street",
+		"score": 0.81344
+	}
+	],
+	"description": {
+	"tags": [ "street", "european", "classic", "lemon", "vintage", "orange"],
+	"caption": "European street scene of commerce"
+	}
+}

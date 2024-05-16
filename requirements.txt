@@ -1,0 +1,15 @@
+Flask
+Flask-RESTful
+llama-index
+llama-index-llms-llama-cpp
+llama-index-embeddings-huggingface
+llama-cpp-python
+llama-index-vector-stores-weaviate==0.1.5
+pypdf
+sentence-transformers
+rank-bm25
+pysrt
+pandas
+deep_translator
+detectlanguage
+python-dotenv
