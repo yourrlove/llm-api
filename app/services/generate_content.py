@@ -1,4 +1,3 @@
-import weaviate
 from typing import Dict, Any
 import os
 # import openai
@@ -8,7 +7,8 @@ from llama_index.core import (
     VectorStoreIndex,
     PromptTemplate,
 )
-from llama_index.vector_stores.weaviate import WeaviateVectorStore
+from pinecone import Pinecone, ServerlessSpec, PodSpec
+from llama_index.vector_stores.pinecone import PineconeVectorStore
 from llama_index.core.query_engine import TransformQueryEngine
 from llama_index.core.prompts.mixin import PromptDictType
 from llama_index.core.indices.query.query_transform.base import BaseQueryTransform
@@ -26,23 +26,15 @@ from app.utils.prompt_templates import QUERY_REWRITE_PROMPT_TMPL, CONTENT_GEN_PR
 Settings.embed_model = embed_model
 Settings.llm = llm
 
-# os.environ["OPENAI_API_KEY"] = "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"
-# openai.api_key = os.environ["OPENAI_API_KEY"]
-# LLM = OpenAI(model="gpt-3.5-turbo")
 detectlanguage.configuration.api_key = "1fc477ea3d0e0c984834610b3f245d30"
 
 # Vector DB
 # cloud
-auth_config = weaviate.AuthApiKey(
-    api_key=os.environ.get('WEAVIATE_API_KEY')
-)
-client = weaviate.Client(
-    os.environ.get('WEAVIATE_URL'),
-    auth_client_secret=auth_config,
-)
+pc = Pinecone(api_key=os.environ.get('PINECONE_API_KEY'))
 
 def load_vetor_store_index(index_name):
-    vector_store = WeaviateVectorStore(weaviate_client=client, index_name=index_name)
+    pc_index = pc.Index(index_name)
+    vector_store = PineconeVectorStore(pinecone_index=pc_index)
     index = VectorStoreIndex.from_vector_store(vector_store)
     return index
 
@@ -90,7 +82,7 @@ def get_id_in_resonse(response):
   ids = []
   for key, value in response.metadata.items():
     try:
-      id = value.get('ID')
+      id = value.get('file_id')
       ids.append(id)
     except:
       continue
@@ -114,7 +106,7 @@ def generate_content(query_engine, query):
 # query_rewrite_prompt = PromptTemplate(QUERY_REWRITE_PROMPT_TMPL)
 content_gen_prompt = PromptTemplate(CONTENT_GEN_PROMPT_TMPL, prompt_type=PromptType.SUMMARY)
 
-index = load_vetor_store_index("LlamaIndex_doc_index")
+index = load_vetor_store_index("doc-index")
 # query_transform = RewriteQuery(llm=LLM, rewrite_query_prompt=query_rewrite_prompt)
 
 query_engine_generate = index.as_query_engine(

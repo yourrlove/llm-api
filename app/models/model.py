@@ -1,35 +1,28 @@
 from llama_index.core.embeddings import resolve_embed_model
-from llama_index.llms.llama_cpp import LlamaCPP
-from llama_index.llms.llama_cpp.llama_utils import (
-    messages_to_prompt,
-    completion_to_prompt,
-)
+from llama_index.llms.huggingface import HuggingFaceLLM
 import os
-from app import PROJECT_PATH
+import torch
 
 def get_embed_model(model_path="local:BAAI/bge-m3"):
     embed_model = resolve_embed_model(model_path)
     return embed_model
 
 
-def get_llm(model_path="./models/mistral-7b-instruct-v0.2.Q4_K_M.gguf",
+def get_llm(model_name="mistralai/Mistral-7B-Instruct-v0.2",
             temperature=0.1,
             max_new_tokens=512,
-            context_window=8000,
-            n_gpu_layers=35):
-    llm = LlamaCPP(
-        model_path=model_path,
-        temperature=temperature,
-        max_new_tokens=max_new_tokens,
-        context_window=context_window,
-        generate_kwargs={},
-        # set to at least 1 to use GPU
-        model_kwargs={"n_gpu_layers": n_gpu_layers,"n_threads": int(os.cpu_count())},
-        messages_to_prompt=messages_to_prompt,
-        completion_to_prompt=completion_to_prompt,
-        verbose=True
+            context_window=8000):
+    llm = HuggingFaceLLM(
+        context_window=1024,
+        max_new_tokens=256,
+        generate_kwargs={"temperature": 0.7, "do_sample": True},
+        model_name="mistralai/Mistral-7B-Instruct-v0.2",
+        tokenizer_name="mistralai/Mistral-7B-Instruct-v0.2",
+        device_map="cuda",
+        tokenizer_kwargs={"max_length": 1024},
+        model_kwargs={"torch_dtype": torch.float16}
     )
     return llm
 
 embed_model = get_embed_model(model_path="local:BAAI/bge-m3")
-llm = get_llm(model_path=os.path.join(PROJECT_PATH,"models/mistral-7b-instruct-v0.2.Q4_K_M.gguf"), max_new_tokens=4096)
+llm = get_llm()

@@ -1,0 +1,42 @@
+{
+    "doc-index": {
+        "content_info": "Content of a text file",
+        "metadata_info": [
+            {
+                "name": "",
+                "description": "",
+                "type": ""
+            }
+        ]
+    },
+    "img-index": {
+        "content_info": "Content of an image file",
+        "metadata_info": [
+            {
+                "name": "",
+                "description": "",
+                "type": ""
+            }
+        ]
+    },
+    "au-index": {
+        "content_info": "Content of an audio file",
+        "metadata_info": [
+            {
+                "name": "",
+                "description": "",
+                "type": ""
+            }
+        ]
+    },
+    "vid-index": {
+        "content_info": "Content of a video file",
+        "metadata_info": [
+            {
+                "name": "",
+                "description": "",
+                "type": ""
+            }
+        ]
+    }
+}

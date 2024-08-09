@@ -16,6 +16,7 @@ from llama_index.core.postprocessor import (
     LongContextReorder,
     MetadataReplacementPostProcessor
 )
+from app import INDEX_MAPPING, PROJECT_PATH
 from app.models.model import embed_model, llm
 from app.utils.prompt_templates import (
     IMG_PROMPT_TMPL,
@@ -24,6 +25,7 @@ from app.utils.prompt_templates import (
     DOC_PROMPT_TMPL,
 )
 from app.utils.node_postprocessors import reorder, reranker, metadatareplacement
+from app.services.ingest_data import build_ingestion_pipeline
 from deep_translator import GoogleTranslator
 import detectlanguage
 
@@ -32,32 +34,24 @@ Settings.llm = llm
 
 detectlanguage.configuration.api_key = os.environ.get('DEEPTRANSLATOR_API')
 
-# Weaviate VectorDB (cloud)
-auth_config = weaviate.AuthApiKey(
-    api_key=os.environ.get('WEAVIATE_API_KEY')
-)
-client = weaviate.Client(
-    os.environ.get('WEAVIATE_URL'),
-    auth_client_secret=auth_config,
-)
-
-# local
-# client = weaviate.Client("http://localhost:8080")
 
 def load_vetor_store_index(index_name):
-    vector_store = WeaviateVectorStore(weaviate_client=client, index_name=index_name)
+    pipeline = build_ingestion_pipeline(index_name)
+    doctype = INDEX_MAPPING.get(index_name)
+    storage_path = os.path.join(os.path.join(PROJECT_PATH, "pipeline_storage", doctype))
+    pipeline.load(storage_path)
+    vector_store = pipeline.vector_store
     index = VectorStoreIndex.from_vector_store(vector_store)
     return index
 
-
-def define_query_engine(index_name, prompt_template, node_postprocessors, response_mode="simple_summarize", topk=5):
+def define_query_engine(index_name, prompt_template, node_postprocessors, output_cls, response_mode="simple_summarize", topk=5):
     index = load_vetor_store_index(index_name)
     prompt = PromptTemplate(prompt_template)
 
     query_engine = index.as_query_engine(
         response_mode=response_mode, use_async=True,
         text_qa_template=prompt, similarity_top_k=topk,
-        node_postprocessors=node_postprocessors
+        node_postprocessors=node_postprocessors,
     )
     return query_engine
 
@@ -69,16 +63,16 @@ CHOICES = [
 ]
 
 def construct_router_query_engine(choices=CHOICES):
-    img_query_engine = define_query_engine(index_name="LlamaIndex_img_index",
+    img_query_engine = define_query_engine(index_name="img-index",
                                            prompt_template=IMG_PROMPT_TMPL,
                                            node_postprocessors=[reranker])
-    au_query_engine = define_query_engine(index_name="LlamaIndex_au_index",
+    au_query_engine = define_query_engine(index_name="au-index",
                                           prompt_template=AU_PROMPT_TMPL,
                                           node_postprocessors=[reranker])
-    vid_query_engine = define_query_engine(index_name="LlamaIndex_vid_index",
+    vid_query_engine = define_query_engine(index_name="vid-index",
                                           prompt_template=VID_PROMPT_TMPL,
                                           node_postprocessors=[reranker])
-    doc_query_engine = define_query_engine(index_name="LlamaIndex_doc_index",
+    doc_query_engine = define_query_engine(index_name="doc-index",
                                           prompt_template=DOC_PROMPT_TMPL,
                                           node_postprocessors=[reranker, metadatareplacement, reorder])
     
@@ -105,11 +99,13 @@ def get_metadata_in_response(response):
 
 def get_source_in_resonse(response):
   source = []
+  ids = []
   for key, value in response.metadata.items():
     try:
       id = value.get('ID')
-      if str(id) in response.response:
+      if (str(id) in response.response) and (id not in ids):
         source.append({'id': id, 'title': value.get('TITLE')})
+      ids.append(id)
     except:
       continue
   return source
@@ -121,7 +117,8 @@ def structured_output(text, response):
   answer['detail'] = get_metadata_in_response(response)
   return answer
 
-def retrieve_files(query_engine, query):
+def retrieve_files(query_engine, query, data_path):
+  ingested_nodes = ingest(data_path)
   lang = detectlanguage.detect(query)[0]['language']
   print("QUERY LANG", lang)
   response = query_engine.query(query)
