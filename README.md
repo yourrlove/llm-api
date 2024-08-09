@@ -1,4 +1,4 @@
-This is the repository for Demo Rest Api Custom LLM
+This is the repository for Demo Rest Api Custom LLM (README chưa chỉnh sửa)
 
 ### API Endpoints
 
@@ -36,8 +36,6 @@ API_llm/
 │   ├── api/
 │   │   ├── __init__.py
 │   │   └── routes.py
-│   ├── templates/
-│   │   └── form.html
 │   ├── models/
 │   │   └── model.py
 │   ├── services/
